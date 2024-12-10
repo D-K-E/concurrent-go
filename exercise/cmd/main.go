@@ -4,10 +4,12 @@ import (
 	// catfile "github.com/D-K-E/concurrent-go/catfile"
 	// grepfile "github.com/D-K-E/concurrent-go/grepfile"
 	// dowork "github.com/D-K-E/concurrent-go/dowork"
-	letterfreq "github.com/D-K-E/concurrent-go/letterfreq"
+	// letterfreq "github.com/D-K-E/concurrent-go/letterfreq"
+	gamesync "github.com/D-K-E/concurrent-go/gamesync"
 )
 
 func main() {
-	letterfreq.LetterFreqMutexMain()
+	// letterfreq.LetterFreqMutexMain()
 	// letterfreq.LetterFreqMain()
+	gamesync.GameSyncMain()
 }
