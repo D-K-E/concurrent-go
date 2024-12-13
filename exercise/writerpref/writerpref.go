@@ -9,7 +9,7 @@ import (
 )
 
 func WriterPrefMain() {
-	rwMut := selfsync.New()
+	rwMut := selfsync.NewMutex()
 	for i := 0; i < 2; i++ {
 		go func() { // starts 2 goroutines
 			for { // repeats forever

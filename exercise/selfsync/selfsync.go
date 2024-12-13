@@ -9,7 +9,7 @@ type ReadWriteMutex struct {
 	cond           *sync.Cond //
 }
 
-func New() *ReadWriteMutex {
+func NewMutex() *ReadWriteMutex {
 	m := sync.Mutex{}
 	rwmutex := ReadWriteMutex{
 		readerCounter:  0,
