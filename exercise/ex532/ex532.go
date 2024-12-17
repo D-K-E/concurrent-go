@@ -32,6 +32,9 @@ func playerHandler(cond *sync.Cond, playersRemaining *int, playerId int,
 	for *playersRemaining > 0 && !(*gameHasStarted) {
 		fmt.Println(playerId, ": Waiting for more players")
 		cond.Wait()
+		/* calling wait on condition variable releases lock
+		   automatically on its mutex and suspends the current execution.
+		*/
 	}
 	// unlock all goroutines and resume execution
 	cond.L.Unlock()

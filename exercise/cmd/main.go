@@ -9,7 +9,8 @@ import (
 	// writerpref "github.com/D-K-E/concurrent-go/writerpref"
 	// semadowork "github.com/D-K-E/concurrent-go/semadowork"
 	// ex531 "github.com/D-K-E/concurrent-go/ex531"
-	ex532 "github.com/D-K-E/concurrent-go/ex532"
+	// ex532 "github.com/D-K-E/concurrent-go/ex532"
+	semadowork "github.com/D-K-E/concurrent-go/semadowork"
 )
 
 func main() {
@@ -19,5 +20,8 @@ func main() {
 	// writerpref.WriterPrefMain()
 	// semadowork.SemaphoreDoWorkMain()
 	// ex531.Ex531Main()
-	ex532.Ex532Main()
+	// ex532.Ex532Main()
+	// semadowork.WeightedSemaphoreDoWorkMain()
+	// semadowork.WaitGroupDoWorkMain()
+	semadowork.StaticWaitGroupDoWorkMain()
 }
