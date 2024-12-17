@@ -58,7 +58,7 @@ func expiryTimer(cond *sync.Cond, start *time.Time,
 	cond.L.Lock() // lock since gameHasStarted is shared
 	fmt.Println("time's up! Starting game!")
 	*gameHasStarted = true
-	cond.Broadcast()
+	cond.Broadcast() // signal all waiting threads to proceed with their business
 	cond.L.Unlock()
 }
 
