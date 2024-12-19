@@ -10,7 +10,8 @@ import (
 	// semadowork "github.com/D-K-E/concurrent-go/semadowork"
 	// ex531 "github.com/D-K-E/concurrent-go/ex531"
 	// ex532 "github.com/D-K-E/concurrent-go/ex532"
-	semadowork "github.com/D-K-E/concurrent-go/semadowork"
+	// semadowork "github.com/D-K-E/concurrent-go/semadowork"
+	ex "github.com/D-K-E/concurrent-go/matmulex634"
 )
 
 func main() {
@@ -23,5 +24,7 @@ func main() {
 	// ex532.Ex532Main()
 	// semadowork.WeightedSemaphoreDoWorkMain()
 	// semadowork.WaitGroupDoWorkMain()
-	semadowork.StaticWaitGroupDoWorkMain()
+	// semadowork.StaticWaitGroupDoWorkMain()
+	// semadowork.BarrierMain()
+	ex.MatMulMain()
 }
