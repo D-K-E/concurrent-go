@@ -13,7 +13,8 @@ import (
 	// semadowork "github.com/D-K-E/concurrent-go/semadowork"
 	// ex "github.com/D-K-E/concurrent-go/matmulex634"
 	// hellochannel "github.com/D-K-E/concurrent-go/hellochannel"
-	numfactor "github.com/D-K-E/concurrent-go/numfactor"
+	// numfactor "github.com/D-K-E/concurrent-go/numfactor"
+	hellochannel "github.com/D-K-E/concurrent-go/hellochannel"
 )
 
 func main() {
@@ -33,5 +34,7 @@ func main() {
 	// hellochannel.HelloBufferedChannelMain()
 	// hellochannel.HelloDirectionChannelMain()
 	// numfactor.NumFactorMain()
-	numfactor.NumFactorMain2()
+	// numfactor.NumFactorMain2()
+	// hellochannel.HelloSelfChannelMain()
+	hellochannel.HelloSelfChannelMain2()
 }

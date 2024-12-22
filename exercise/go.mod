@@ -4,7 +4,9 @@ go 1.23.3
 
 replace github.com/D-K-E/concurrent-go/dowork => ./dowork
 
-require github.com/D-K-E/concurrent-go/numfactor v0.0.0-00010101000000-000000000000
+require github.com/D-K-E/concurrent-go/hellochannel v0.0.0-00010101000000-000000000000
+
+require github.com/D-K-E/concurrent-go/selfsync v0.0.0-00010101000000-000000000000 // indirect
 
 replace github.com/D-K-E/concurrent-go/catfile => ./catfile
 

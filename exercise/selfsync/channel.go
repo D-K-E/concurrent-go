@@ -42,4 +42,3 @@ func (c *Channel[ChannelType]) Receive() ChannelType {
 	c.mutex.Unlock()
 	return v
 }
-
