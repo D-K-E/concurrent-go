@@ -11,7 +11,9 @@ import (
 	// ex531 "github.com/D-K-E/concurrent-go/ex531"
 	// ex532 "github.com/D-K-E/concurrent-go/ex532"
 	// semadowork "github.com/D-K-E/concurrent-go/semadowork"
-	ex "github.com/D-K-E/concurrent-go/matmulex634"
+	// ex "github.com/D-K-E/concurrent-go/matmulex634"
+	// hellochannel "github.com/D-K-E/concurrent-go/hellochannel"
+	numfactor "github.com/D-K-E/concurrent-go/numfactor"
 )
 
 func main() {
@@ -26,5 +28,10 @@ func main() {
 	// semadowork.WaitGroupDoWorkMain()
 	// semadowork.StaticWaitGroupDoWorkMain()
 	// semadowork.BarrierMain()
-	ex.MatMulMain()
+	// ex.MatMulMain()
+	// hellochannel.HelloChannelMain()
+	// hellochannel.HelloBufferedChannelMain()
+	// hellochannel.HelloDirectionChannelMain()
+	// numfactor.NumFactorMain()
+	numfactor.NumFactorMain2()
 }
