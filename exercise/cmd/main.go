@@ -14,7 +14,8 @@ import (
 	// ex "github.com/D-K-E/concurrent-go/matmulex634"
 	// hellochannel "github.com/D-K-E/concurrent-go/hellochannel"
 	// numfactor "github.com/D-K-E/concurrent-go/numfactor"
-	hellochannel "github.com/D-K-E/concurrent-go/hellochannel"
+	// hellochannel "github.com/D-K-E/concurrent-go/hellochannel"
+	selectscenario "github.com/D-K-E/concurrent-go/selectscenario"
 )
 
 func main() {
@@ -36,5 +37,7 @@ func main() {
 	// numfactor.NumFactorMain()
 	// numfactor.NumFactorMain2()
 	// hellochannel.HelloSelfChannelMain()
-	hellochannel.HelloSelfChannelMain2()
+	// hellochannel.HelloSelfChannelMain2()
+	// hellochannel.HelloSelectMain()
+	selectscenario.SelectScenarioDefaultCaseMain()
 }
