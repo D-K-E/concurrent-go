@@ -40,5 +40,6 @@ func main() {
 	// hellochannel.HelloSelfChannelMain2()
 	// hellochannel.HelloSelectMain()
 	// selectscenario.SelectScenarioDefaultCaseMain()
-	selectscenario.TimeoutMain()
+	// selectscenario.TimeoutMain()
+	selectscenario.PrimesOnlyMain()
 }
