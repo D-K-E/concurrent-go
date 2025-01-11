@@ -48,5 +48,6 @@ func main() {
 	// selectscenario.Ex833Main()
 	// selectscenario.QuitChannelMain()
 	// selectscenario.ChannelPipelineMainV1()
-	selectscenario.ChannelPipelineMainV3()
+	// selectscenario.ChannelPipelineMainV3()
+	selectscenario.FanInFanOutMain()
 }
