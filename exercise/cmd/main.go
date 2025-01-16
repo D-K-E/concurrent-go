@@ -52,5 +52,6 @@ func main() {
 	// selectscenario.FanInFanOutMain()
 	// selectscenario.FanInFanOutMainV2()
 	// selectscenario.BroadcastMain()
-	selectscenario.ConditionalQuitMain()
+	// selectscenario.ConditionalQuitMain()
+	selectscenario.FirstClassChannelMain()
 }
