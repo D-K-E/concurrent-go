@@ -28,3 +28,27 @@ func Take[ChannelType any](quit chan int,
 	}()
 	return output
 }
+
+func TakeUntil[ChannelType any](f func(ChannelType) bool,
+	quit chan int, input <-chan ChannelType,
+) <-chan ChannelType {
+	output := make(chan ChannelType)
+	go func() {
+		isOpen := true
+		var msg ChannelType
+		for f(msg) && isOpen {
+			select {
+			case msg, isOpen = (<-input):
+				if isOpen {
+					output <- msg
+				}
+			case <-quit:
+				return
+			}
+		}
+		if !f(msg) {
+			close(output)
+		}
+	}()
+	return output
+}

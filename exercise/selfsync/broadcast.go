@@ -26,7 +26,7 @@ func CloseAll[ChannelType any](channels ...chan ChannelType) {
 func Broadcast[ChannelType any](quit <-chan int,
 	input <-chan ChannelType, n int,
 ) []chan ChannelType {
-	outputs := CreateAll[ChannelType](quit, input, n)
+	outputs := CreateAll(quit, input, n)
 	go func() {
 		defer CloseAll(outputs...)
 		var channelMsg ChannelType

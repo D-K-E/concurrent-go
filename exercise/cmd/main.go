@@ -15,7 +15,8 @@ import (
 	// hellochannel "github.com/D-K-E/concurrent-go/hellochannel"
 	// numfactor "github.com/D-K-E/concurrent-go/numfactor"
 	// hellochannel "github.com/D-K-E/concurrent-go/hellochannel"
-	selectscenario "github.com/D-K-E/concurrent-go/selectscenario"
+	// selectscenario "github.com/D-K-E/concurrent-go/selectscenario"
+	ex93 "github.com/D-K-E/concurrent-go/ex93"
 )
 
 func main() {
@@ -53,5 +54,7 @@ func main() {
 	// selectscenario.FanInFanOutMainV2()
 	// selectscenario.BroadcastMain()
 	// selectscenario.ConditionalQuitMain()
-	selectscenario.FirstClassChannelMain()
+	// selectscenario.FirstClassChannelMain()
+	// ex93.GenerateSquaresMain()
+	ex93.Ex935Main()
 }

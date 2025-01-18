@@ -4,7 +4,7 @@ go 1.23.3
 
 replace github.com/D-K-E/concurrent-go/dowork => ./dowork
 
-require github.com/D-K-E/concurrent-go/selectscenario v0.0.0-00010101000000-000000000000
+require github.com/D-K-E/concurrent-go/ex93 v0.0.0-00010101000000-000000000000
 
 require github.com/D-K-E/concurrent-go/selfsync v0.0.0-00010101000000-000000000000 // indirect
 
@@ -33,3 +33,5 @@ replace github.com/D-K-E/concurrent-go/hellochannel => ./hellochannel
 replace github.com/D-K-E/concurrent-go/numfactor => ./numfactor
 
 replace github.com/D-K-E/concurrent-go/selectscenario => ./selectscenario
+
+replace github.com/D-K-E/concurrent-go/ex93 => ./ex93
