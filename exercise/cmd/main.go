@@ -16,7 +16,8 @@ import (
 	// numfactor "github.com/D-K-E/concurrent-go/numfactor"
 	// hellochannel "github.com/D-K-E/concurrent-go/hellochannel"
 	// selectscenario "github.com/D-K-E/concurrent-go/selectscenario"
-	ex93 "github.com/D-K-E/concurrent-go/ex93"
+	// ex93 "github.com/D-K-E/concurrent-go/ex93"
+	patterns "github.com/D-K-E/concurrent-go/patterns"
 )
 
 func main() {
@@ -56,5 +57,6 @@ func main() {
 	// selectscenario.ConditionalQuitMain()
 	// selectscenario.FirstClassChannelMain()
 	// ex93.GenerateSquaresMain()
-	ex93.Ex935Main()
+	// ex93.Ex935Main()
+	patterns.MapLikeLoopParallelismWithIndependentInnerLoopMain()
 }
