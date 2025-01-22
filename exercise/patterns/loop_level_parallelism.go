@@ -55,3 +55,39 @@ func MapLikeLoopParallelismWithIndependentInnerLoopMain() {
 	}
 	wg.Wait()
 }
+
+/*
+The second scenario is fold like scenario. This time we'll compute the hash of
+a folder using the hash of files inside it. The tricky bit is the fact that
+order of iteration would affect the folder hash. The solution to this is to
+run independent parts concurrently and compute dependent parts using
+synchronisation mechanisms.
+*/
+
+func FoldLikeLoopParallelismWithDependentInnerLoopMain() {
+	dir := os.Args[1]
+	files, _ := os.ReadDir(dir)
+	sha := sha256.New()
+	var prev, next chan int
+	for _, file := range files {
+		if !file.IsDir() {
+			next = make(chan int)
+			go func(filename string, prev, next chan int) {
+				fp := filepath.Join(dir, filename)
+				hash := FHash(fp)
+				if prev != nil {
+					<-prev // if not first go routine wait for previous
+				}
+				sha.Write(hash)
+				next <- 0
+			}(file.Name(), prev, next)
+			prev = next // notice we are piping channels successively
+		}
+	}
+	// drain next
+	<-next
+	/*for n := range next {
+		_ = n
+	}*/
+	fmt.Printf("%x\n", sha.Sum(nil))
+}

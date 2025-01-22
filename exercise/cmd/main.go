@@ -58,5 +58,6 @@ func main() {
 	// selectscenario.FirstClassChannelMain()
 	// ex93.GenerateSquaresMain()
 	// ex93.Ex935Main()
-	patterns.MapLikeLoopParallelismWithIndependentInnerLoopMain()
+	// patterns.MapLikeLoopParallelismWithIndependentInnerLoopMain()
+	patterns.FoldLikeLoopParallelismWithDependentInnerLoopMain()
 }
