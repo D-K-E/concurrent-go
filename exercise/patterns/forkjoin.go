@@ -2,8 +2,10 @@ package patterns
 
 import (
 	"bufio"
+	"fmt"
 	"math"
 	"os"
+	"path/filepath"
 	"strings"
 	"sync"
 )
@@ -20,6 +22,9 @@ The fork-join pattern fits mostly to task decomposition. We have some task or
 a suite of tasks and we want to execute simultaneously. In the fork part of
 the pattern we spawn a routine for each task, and gather their results in a
 common channel in the join part.
+
+From selectscenarios that were covered, the fork-join pattern resembles to
+broadcast pattern.
 
 Our example program would find the code with the most nested blocks by
 searching through all the files.
@@ -45,10 +50,21 @@ func readLines(filename string) FileContent {
 	return fc
 }
 
-type CodeDepth struct {
-	file  string
-	level int
+type FileStat interface {
+	FileName() string
+	Value() int
 }
+
+type CodeDepth struct {
+	file string
+	num  int
+}
+
+func (c CodeDepth) FileName() string {
+	return c.file
+}
+
+func (c CodeDepth) Value() int { return c.num }
 
 // task 2: compute code depth for given code text
 func deepestNestedBlock(file FileContent) CodeDepth {
@@ -67,13 +83,17 @@ func deepestNestedBlock(file FileContent) CodeDepth {
 			}
 		}
 	}
-	return CodeDepth{filename, maxDepth}
+	cdepth := CodeDepth{filename, maxDepth}
+	return cdepth
 }
 
 type FuncNumber struct {
 	filename string
 	numFunc  int
 }
+
+func (f FuncNumber) FileName() string { return f.filename }
+func (f FuncNumber) Value() int       { return f.numFunc }
 
 // task 3: compute number of funcs for given code text
 func numberOfFunc(file FileContent) FuncNumber {
@@ -86,12 +106,14 @@ func numberOfFunc(file FileContent) FuncNumber {
 			nbFunc += 1
 		}
 	}
-	return FuncNumber{filename, nbFunc}
+	fnumber := FuncNumber{filename, nbFunc}
+	return fnumber
 }
 
 // now let's see how forking is done
 func forkReadLinesIfNeed(path string, info os.FileInfo,
-	wg *sync.WaitGroup, fileContents chan FileContent,
+	wg *sync.WaitGroup,
+	fileContents chan<- FileContent,
 ) {
 	if (!info.IsDir()) && (strings.HasSuffix(path, ".go")) {
 		wg.Add(1)
@@ -103,9 +125,10 @@ func forkReadLinesIfNeed(path string, info os.FileInfo,
 	}
 }
 
-func forkFileHandler[FuncOut any](
-	wg *sync.WaitGroup, fileContents <-chan FileContent,
-	codeDepths chan FuncOut, fileHandler func(FileContent) FuncOut,
+func forkFileHandler[FuncOut FileStat](wg *sync.WaitGroup,
+	fileContents <-chan FileContent,
+	codeDepths chan FuncOut,
+	fileHandler func(FileContent) FuncOut,
 ) {
 	wg.Add(1)
 	go func() {
@@ -117,16 +140,118 @@ func forkFileHandler[FuncOut any](
 	}()
 }
 
-func forkDeepestNested(wg *sync.WaitGroup, fileContents <-chan FileContent,
-	codeDepths chan CodeDepth,
+func forkDeepestNested(wg *sync.WaitGroup,
+	fileContents <-chan FileContent, codeDepths chan CodeDepth,
 ) {
 	forkFileHandler(wg, fileContents, codeDepths, deepestNestedBlock)
 }
 
-func forkNumberOfFunc(wg *sync.WaitGroup, fileContents <-chan FileContent,
-	numF chan FuncNumber,
-) {
+func forkNumberOfFunc(wg *sync.WaitGroup, fileContents <-chan FileContent, numF chan FuncNumber) {
 	forkFileHandler(wg, fileContents, numF, numberOfFunc)
 }
 
 // Now we do the join part
+func joinFileHandler[FuncOut FileStat](
+	wg *sync.WaitGroup,
+	partialResult <-chan FuncOut,
+	maxDefault FuncOut,
+) chan FuncOut {
+	finalResult := make(chan FuncOut)
+	wg.Add(1)
+	go func() {
+		localDefault := maxDefault
+		for result := range partialResult {
+			if result.Value() > localDefault.Value() {
+				localDefault = result
+			}
+		}
+		finalResult <- localDefault
+		wg.Done()
+	}()
+	return finalResult
+}
+
+func fanInResults(finalCodeDepth chan CodeDepth, finalFuncNumber chan FuncNumber, wg *sync.WaitGroup,
+) {
+	wg.Add(2)
+	go func() {
+		isFinalCodeOpen := true
+		isFinalFuncOpen := true
+		var finalCDepth CodeDepth
+		var finalFNumber FuncNumber
+		for isFinalCodeOpen || isFinalFuncOpen {
+			select {
+			case finalCDepth, isFinalCodeOpen = (<-finalCodeDepth):
+				if isFinalCodeOpen {
+					fmt.Printf("%s has deepest nested code block of %d\n",
+						finalCDepth.FileName(), finalCDepth.Value())
+
+					// now that we have the result we can close the channel
+					wg.Done()
+				}
+			case finalFNumber, isFinalFuncOpen = (<-finalFuncNumber):
+				if isFinalFuncOpen {
+					fmt.Printf("%s has the highest number of func %d\n",
+						finalFNumber.FileName(), finalFNumber.Value())
+
+					// now that we have the result we can close the channel
+					wg.Done()
+				}
+			}
+		}
+	}()
+}
+
+// now let's synchronize everything
+func ForkJoinMain() {
+	dir := os.Args[1]
+
+	// make partial result channels
+	fileContents := make(chan FileContent)
+	codeDepths := make(chan CodeDepth)
+	funcNumbers := make(chan FuncNumber)
+
+	// create the wait group for waiting in the synchronization functions
+	wg1 := sync.WaitGroup{}
+	wg2 := sync.WaitGroup{}
+	wg3 := sync.WaitGroup{}
+
+	// file path walk
+	filepath.Walk(dir,
+		func(path string, info os.FileInfo, err error) error {
+			// launch tasks
+			forkReadLinesIfNeed(path, info, &wg1, fileContents)
+			forkDeepestNested(&wg2, fileContents, codeDepths)
+			forkNumberOfFunc(&wg2, fileContents, funcNumbers)
+			return nil
+		})
+
+	//
+	wg1.Wait()
+	close(fileContents)
+
+	// join results
+	cdepth := CodeDepth{"", 0}
+	finalCodeDepth := joinFileHandler(&wg3,
+		codeDepths, cdepth)
+	funcN := FuncNumber{"", 0}
+	finalFuncNumber := joinFileHandler(&wg3,
+		funcNumbers, funcN)
+
+	// wait for reading task to complete
+	wg2.Wait()
+
+	close(codeDepths)
+	close(funcNumbers)
+
+	//
+	wg4 := sync.WaitGroup{}
+	fanInResults(finalCodeDepth, finalFuncNumber, &wg4)
+
+	wg3.Wait()
+
+	wg4.Wait()
+	// close its channel
+	close(finalCodeDepth)
+	close(finalFuncNumber)
+}

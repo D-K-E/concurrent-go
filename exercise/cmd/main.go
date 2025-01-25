@@ -59,5 +59,6 @@ func main() {
 	// ex93.GenerateSquaresMain()
 	// ex93.Ex935Main()
 	// patterns.MapLikeLoopParallelismWithIndependentInnerLoopMain()
-	patterns.FoldLikeLoopParallelismWithDependentInnerLoopMain()
+	// patterns.FoldLikeLoopParallelismWithDependentInnerLoopMain()
+	patterns.ForkJoinMain()
 }
