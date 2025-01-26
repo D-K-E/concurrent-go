@@ -110,148 +110,147 @@ func numberOfFunc(file FileContent) FuncNumber {
 	return fnumber
 }
 
+/*
+Given these task let's first see the synchronized version of this code
+*/
+func ForkJoinSynchronizedMain() {
+	// get root directory
+	dir := os.Args[1]
+
+	//
+	cdepth_ := CodeDepth{"", 0}
+	funcN := FuncNumber{"", 0}
+	// file path walk
+	filepath.Walk(dir,
+		func(path string, info os.FileInfo, err error) error {
+			// launch tasks
+			fcontent := readLines(path)
+			cdepth := deepestNestedBlock(fcontent)
+			numFunc := numberOfFunc(fcontent)
+			if cdepth.Value() > cdepth_.Value() {
+				cdepth_ = cdepth
+			}
+			if numFunc.Value() > funcN.Value() {
+				funcN = numFunc
+			}
+			return nil
+		})
+
+	// print results
+	fmt.Printf("%s has deepest nested code block of %d\n",
+		cdepth_.FileName(), cdepth_.Value())
+
+	fmt.Printf("%s has highest number of func of %d\n",
+		funcN.FileName(), funcN.Value())
+}
+
 // now let's see how forking is done
 func forkReadLinesIfNeed(path string, info os.FileInfo,
 	wg *sync.WaitGroup,
-	fileContents chan<- FileContent,
+	codeDepths chan<- CodeDepth,
+	funcNums chan<- FuncNumber,
 ) {
 	if (!info.IsDir()) && (strings.HasSuffix(path, ".go")) {
-		wg.Add(1)
+		wg.Add(2)
+		fc := readLines(path)
+
+		// launch task 1
 		go func() {
-			fc := readLines(path)
-			fileContents <- fc
+			cdepth := deepestNestedBlock(fc)
+			codeDepths <- cdepth
+			wg.Done()
+		}()
+		// launch task 2
+		go func() {
+			numf := numberOfFunc(fc)
+			funcNums <- numf
 			wg.Done()
 		}()
 	}
 }
 
-func forkFileHandler[FuncOut FileStat](wg *sync.WaitGroup,
-	fileContents <-chan FileContent,
-	codeDepths chan FuncOut,
-	fileHandler func(FileContent) FuncOut,
-) {
-	wg.Add(1)
-	go func() {
-		for fc := range fileContents {
-			codeD := fileHandler(fc)
-			codeDepths <- codeD
-		}
-		wg.Done()
-	}()
-}
-
-func forkDeepestNested(wg *sync.WaitGroup,
-	fileContents <-chan FileContent, codeDepths chan CodeDepth,
-) {
-	forkFileHandler(wg, fileContents, codeDepths, deepestNestedBlock)
-}
-
-func forkNumberOfFunc(wg *sync.WaitGroup, fileContents <-chan FileContent, numF chan FuncNumber) {
-	forkFileHandler(wg, fileContents, numF, numberOfFunc)
+type Pair[FirstType, SecondType any] struct {
+	first  FirstType
+	second SecondType
 }
 
 // Now we do the join part
-func joinFileHandler[FuncOut FileStat](
-	wg *sync.WaitGroup,
-	partialResult <-chan FuncOut,
-	maxDefault FuncOut,
-) chan FuncOut {
-	finalResult := make(chan FuncOut)
-	wg.Add(1)
+func joinFileHandler(
+	codeDepths <-chan CodeDepth,
+	funcNums <-chan FuncNumber,
+) Pair[chan CodeDepth, chan FuncNumber] {
+	finalCodeDepth := make(chan CodeDepth)
+	mxDepth := CodeDepth{"", 0}
 	go func() {
-		localDefault := maxDefault
-		for result := range partialResult {
-			if result.Value() > localDefault.Value() {
-				localDefault = result
+		for result := range codeDepths {
+			if result.Value() > mxDepth.Value() {
+				mxDepth = result
 			}
 		}
-		finalResult <- localDefault
-		wg.Done()
+		finalCodeDepth <- mxDepth
 	}()
-	return finalResult
-}
-
-func fanInResults(finalCodeDepth chan CodeDepth, finalFuncNumber chan FuncNumber, wg *sync.WaitGroup,
-) {
-	wg.Add(2)
+	finalFuncNum := make(chan FuncNumber)
+	mxFunc := FuncNumber{"", 0}
 	go func() {
-		isFinalCodeOpen := true
-		isFinalFuncOpen := true
-		var finalCDepth CodeDepth
-		var finalFNumber FuncNumber
-		for isFinalCodeOpen || isFinalFuncOpen {
-			select {
-			case finalCDepth, isFinalCodeOpen = (<-finalCodeDepth):
-				if isFinalCodeOpen {
-					fmt.Printf("%s has deepest nested code block of %d\n",
-						finalCDepth.FileName(), finalCDepth.Value())
-
-					// now that we have the result we can close the channel
-					wg.Done()
-				}
-			case finalFNumber, isFinalFuncOpen = (<-finalFuncNumber):
-				if isFinalFuncOpen {
-					fmt.Printf("%s has the highest number of func %d\n",
-						finalFNumber.FileName(), finalFNumber.Value())
-
-					// now that we have the result we can close the channel
-					wg.Done()
-				}
+		for result := range funcNums {
+			if result.Value() > mxFunc.Value() {
+				mxFunc = result
 			}
 		}
+		finalFuncNum <- mxFunc
 	}()
+	p := Pair[chan CodeDepth, chan FuncNumber]{finalCodeDepth, finalFuncNum}
+	return p
 }
 
 // now let's synchronize everything
+
+// fork join main
 func ForkJoinMain() {
 	dir := os.Args[1]
 
 	// make partial result channels
-	fileContents := make(chan FileContent)
 	codeDepths := make(chan CodeDepth)
 	funcNumbers := make(chan FuncNumber)
 
 	// create the wait group for waiting in the synchronization functions
 	wg1 := sync.WaitGroup{}
-	wg2 := sync.WaitGroup{}
-	wg3 := sync.WaitGroup{}
 
 	// file path walk
 	filepath.Walk(dir,
 		func(path string, info os.FileInfo, err error) error {
-			// launch tasks
-			forkReadLinesIfNeed(path, info, &wg1, fileContents)
-			forkDeepestNested(&wg2, fileContents, codeDepths)
-			forkNumberOfFunc(&wg2, fileContents, funcNumbers)
+			// launch tasks with forks
+			forkReadLinesIfNeed(path, info, &wg1, codeDepths, funcNumbers)
 			return nil
 		})
 
 	//
-	wg1.Wait()
-	close(fileContents)
-
 	// join results
-	cdepth := CodeDepth{"", 0}
-	finalCodeDepth := joinFileHandler(&wg3,
-		codeDepths, cdepth)
-	funcN := FuncNumber{"", 0}
-	finalFuncNumber := joinFileHandler(&wg3,
-		funcNumbers, funcN)
+	pair := joinFileHandler(
+		codeDepths, funcNumbers)
 
-	// wait for reading task to complete
-	wg2.Wait()
-
+	wg1.Wait()
 	close(codeDepths)
 	close(funcNumbers)
 
-	//
-	wg4 := sync.WaitGroup{}
-	fanInResults(finalCodeDepth, finalFuncNumber, &wg4)
-
-	wg3.Wait()
-
-	wg4.Wait()
-	// close its channel
-	close(finalCodeDepth)
-	close(finalFuncNumber)
+	// now let's print the values
+	isCodeDepthOpen, isFuncOpen := true, true
+	var finalCodeDepth CodeDepth
+	var finalFuncNum FuncNumber
+	for isCodeDepthOpen || isFuncOpen {
+		select {
+		case finalCodeDepth, isCodeDepthOpen = (<-pair.first):
+			if isCodeDepthOpen {
+				fmt.Printf("%s has deepest nested code block of %d\n",
+					finalCodeDepth.FileName(), finalCodeDepth.Value())
+				close(pair.first)
+			}
+		case finalFuncNum, isFuncOpen = (<-pair.second):
+			if isFuncOpen {
+				fmt.Printf("%s has the highest number of func %d\n",
+					finalFuncNum.FileName(), finalFuncNum.Value())
+				close(pair.second)
+			}
+		}
+	}
 }

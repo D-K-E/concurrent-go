@@ -60,5 +60,6 @@ func main() {
 	// ex93.Ex935Main()
 	// patterns.MapLikeLoopParallelismWithIndependentInnerLoopMain()
 	// patterns.FoldLikeLoopParallelismWithDependentInnerLoopMain()
+	// patterns.ForkJoinSynchronizedMain()
 	patterns.ForkJoinMain()
 }
