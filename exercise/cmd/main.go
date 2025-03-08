@@ -61,5 +61,6 @@ func main() {
 	// patterns.MapLikeLoopParallelismWithIndependentInnerLoopMain()
 	// patterns.FoldLikeLoopParallelismWithDependentInnerLoopMain()
 	// patterns.ForkJoinSynchronizedMain()
-	patterns.ForkJoinMain()
+	// patterns.ForkJoinMain()
+	patterns.WorkerPoolMain()
 }
