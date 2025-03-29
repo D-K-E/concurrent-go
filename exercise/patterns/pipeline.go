@@ -24,7 +24,7 @@ The example program would be a recipe:
 */
 
 const (
-	ovenTime           = 5
+	ovenTime           = 2
 	everyThingElseTime = 2
 )
 
@@ -78,4 +78,49 @@ func CakePrepSequentialMain() {
 		boxedCupcake := Box(doneCupcake)
 		fmt.Println("accepting", boxedCupcake)
 	}
+}
+
+/*
+add on pipe ties an input channel to an output channel and maps what comes out
+of input channel to what is expected by the output channel. We use the quit
+channel pattern to break away from the mapping
+*/
+func AddOnPipe[Input, Output any](quit <-chan int, InToOutMap func(Input) Output, in <-chan Input) chan Output {
+	out := make(chan Output)
+	go func() {
+		defer close(out)
+		for {
+			select {
+			case <-quit:
+				return
+			case input := (<-in):
+				out <- InToOutMap(input)
+			}
+		}
+	}()
+	return out
+}
+
+// concurrent version of cake
+func CakePrepConcurrentMain() {
+	input := make(chan int)
+	quit := make(chan int)
+	trayOutput := AddOnPipe(quit, PrepareTray, input)
+	mixCupcakeOutput := AddOnPipe(quit, MixCupcake, trayOutput)
+	bakeCupcakeOutput := AddOnPipe(quit, Bake, mixCupcakeOutput)
+	doneCupcakeOutput := AddOnPipe(quit, AddTopping, bakeCupcakeOutput)
+	output := AddOnPipe(quit, Box, doneCupcakeOutput)
+
+	numInput := 10
+	go func() {
+		for i := 0; i < numInput; i++ {
+			input <- i
+		}
+	}()
+
+	//
+	for j := 0; j < numInput; j++ {
+		fmt.Println("received", <-output)
+	}
+	quit <- 1 // signal quit
 }
