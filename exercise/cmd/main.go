@@ -17,7 +17,9 @@ import (
 	// hellochannel "github.com/D-K-E/concurrent-go/hellochannel"
 	// selectscenario "github.com/D-K-E/concurrent-go/selectscenario"
 	// ex93 "github.com/D-K-E/concurrent-go/ex93"
-	patterns "github.com/D-K-E/concurrent-go/patterns"
+	// patterns "github.com/D-K-E/concurrent-go/patterns"
+	// deadlock "github.com/D-K-E/concurrent-go/deadlock"
+	ch12 "github.com/D-K-E/concurrent-go/ch12"
 )
 
 func main() {
@@ -62,5 +64,13 @@ func main() {
 	// patterns.FoldLikeLoopParallelismWithDependentInnerLoopMain()
 	// patterns.ForkJoinSynchronizedMain()
 	// patterns.ForkJoinMain()
-	patterns.WorkerPoolMain()
+	// patterns.WorkerPoolMain()
+	// patterns.CakePrepSequentialMain()
+	// patterns.CakePrepConcurrentMain()
+	// patterns.FoldLikeLoopParallelismWithDependentInnerLoopWaitGroupMain()
+	// patterns.WebDownloadSequentialMain()
+	// patterns.WebDownloadConcurrentMain()
+	// deadlock.IncrementScoreMain()
+	// ch12.AtomicStingySpendyMain()
+	ch12.LetterFreqMain()
 }

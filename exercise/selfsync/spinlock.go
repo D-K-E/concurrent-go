@@ -19,6 +19,11 @@ func SwapIfEqualInt32(ptr *int32, oldValue, newValue int32) bool {
 	return result
 }
 
+func SwapIfEqualBool(ptr *atomic.Bool, oldValue, newValue bool) bool {
+	result := ptr.CompareAndSwap(oldValue, newValue)
+	return result
+}
+
 type SpinLockInt32 int32
 
 func (s *SpinLockInt32) Lock() {
@@ -39,4 +44,27 @@ func (s *SpinLockInt32) Unlock() {
 func NewSpinLock() sync.Locker {
 	var lock SpinLockInt32
 	return &lock
+}
+
+type SpinLockBool atomic.Bool
+
+func (s *SpinLockBool) Lock() {
+	lockAsBool := (*atomic.Bool)(s) // cast to bool pointer
+
+	// if swap occurs we call the scheduler to give execution time
+	// to other schedules
+	for !SwapIfEqualBool(lockAsBool, false, true) {
+		runtime.Gosched()
+	}
+}
+
+func (s *SpinLockBool) Unlock() {
+	lockAsBool := (*atomic.Bool)(s) // cast to bool pointer
+	lockAsBool.Store(false)
+}
+
+func (s *SpinLockBool) TryLock() bool {
+	lockAsBool := (*atomic.Bool)(s) // cast to bool pointer
+	isLocked := SwapIfEqualBool(lockAsBool, false, true)
+	return isLocked
 }

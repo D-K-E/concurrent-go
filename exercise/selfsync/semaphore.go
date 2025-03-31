@@ -1,6 +1,9 @@
 package selfsync
 
-import "sync"
+import (
+	"sync"
+	"sync/atomic"
+)
 
 // Semaphore allows a fixed number of permits that enable concurrent
 // executions to access shared resources. A mutex ensures that only a single
@@ -69,4 +72,39 @@ func (rw *WeightedSemaphore) ReleasePermit(n int) {
 	rw.permits += n
 	rw.cond.Signal() // we signal that there is n permits available for acquisition
 	rw.cond.L.Unlock()
+}
+
+/*
+Spin semaphore is another another variation on the semaphore type using atomic
+variables. The permits are initialized using an atomic variable
+*/
+
+type SpinSemaphore struct {
+	permits atomic.Int32 // permits remaining on the semaphore
+}
+
+/*
+During acquisition, we check if the number of permits is 0 or not, and check
+for swap
+*/
+func (rw *SpinSemaphore) Acquire() {
+	for {
+		currentVal := rw.permits.Load()
+		cond1 := currentVal == 0
+		isSwapped := SwapIfEqualInt32(&currentVal, currentVal, currentVal-1)
+		if !cond1 && isSwapped {
+			break
+		}
+	}
+}
+
+// organizes access to resources based on permits
+func (rw *SpinSemaphore) Release() {
+	rw.permits.Add(1)
+}
+
+func NewSpinSemaphore(nbPermits int32) *SpinSemaphore {
+	var sema SpinSemaphore
+	sema.permits.Store(nbPermits)
+	return &sema
 }
